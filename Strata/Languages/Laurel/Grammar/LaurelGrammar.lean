@@ -9,7 +9,8 @@ module
 -- Laurel dialect definition, loaded from LaurelGrammar.st
 -- NOTE: Changes to LaurelGrammar.st are not automatically tracked by the build system.
 -- Update this file (e.g. this comment) to trigger a recompile after modifying LaurelGrammar.st.
--- Last grammar change: block format uses indent(2) with leading spaces for vertical layout.
+-- Last grammar change: block format uses indent(2) with leading spaces for vertical layout;
+-- added Seq<T>, Array<T>, subscript, and seqLiteral productions.
 public import Strata.DDM.Integration.Lean
 public meta import Strata.DDM.Integration.Lean
 
