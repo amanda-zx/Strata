@@ -8,6 +8,8 @@ module
 import all Strata.DL.Imperative.CmdSemantics
 public import Strata.DL.Imperative.StmtSemantics
 import all Strata.DL.Imperative.StmtSemantics
+public import Strata.DL.Imperative.StmtSemanticsProps
+import all Strata.DL.Imperative.StmtSemanticsProps
 import all Strata.DL.Imperative.Cmd
 import all Strata.DL.Util.Relations
 

@@ -7,6 +7,8 @@ module
 
 import all Strata.DL.Imperative.CmdSemantics
 import all Strata.DL.Imperative.StmtSemantics
+public import Strata.DL.Imperative.StmtSemanticsProps
+import all Strata.DL.Imperative.StmtSemanticsProps
 import all Strata.DL.Imperative.HasVars
 import all Strata.DL.Util.Nodup
 public import Strata.DL.Util.ListUtils
