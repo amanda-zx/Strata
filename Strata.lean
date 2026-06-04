@@ -35,6 +35,7 @@ import Strata.Transform.CoreSpecification
 import Strata.Transform.DetToKleeneCorrect
 import Strata.Transform.ProcBodyVerifyCorrect
 import Strata.Transform.Specification
+import Strata.Transform.SpecificationProps
 
 /- Strata Languages — additional -/
 import Strata.Languages.B3
