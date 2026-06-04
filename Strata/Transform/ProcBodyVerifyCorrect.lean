@@ -780,10 +780,6 @@ theorem procBodyVerify_procedureCorrect
     -- We define the projected env.
     let ρ_proj : Env Expression := { ρ' with store := projectStore ρ₀.store ρ'.store, eval := ρ₀.eval }
 
-    -- After the body block terminates via step_block_done, the store is projected.
-    -- We define the projected env.
-    let ρ_proj : Env Expression := { ρ' with store := projectStore ρ₀.store ρ'.store }
-
     have h_to_post : StepStmtStar Expression (EvalCommand π φ) (EvalPureFunc φ)
         (.stmt verifyStmt ρ_init) (.block (.some verifyLabel) ρ_init.store ρ_init.eval (.stmts postAsserts ρ_proj)) := by
       rw [h_eq]

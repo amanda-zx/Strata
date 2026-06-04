@@ -17,6 +17,7 @@ import all Strata.DL.Util.Relations
 import Std.Tactic.BVDecide.Normalize.Bool
 import Std.Tactic.BVDecide.Normalize.Prop
 import Strata.DL.Imperative.KleeneSemanticsProps
+import Strata.DL.Imperative.SemanticsProps
 
 /-! # Deterministic-to-Kleene Transformation Correctness.
 

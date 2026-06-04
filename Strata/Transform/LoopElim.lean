@@ -334,31 +334,12 @@ through a giant monadic term. -/
   .block s!"{loopElimBlockPrefix}loop_{loop_num}"
     [first_iter_facts, loop_passive] {}
 
-mutual
-/-- Collect all labeled `exit` targets occurring in a statement (recursive). -/
-@[expose] def Stmt.labelsLocal (s : Stmt P C) : List String :=
-  match s with
-  | .exit l _        => [l]
-  | .cmd _           => []
-  | .block _ bss _   => Block.labelsLocal bss
-  | .ite _ tss ess _ => Block.labelsLocal tss ++ Block.labelsLocal ess
-  | .loop _ _ _ bss _ => Block.labelsLocal bss
-  | .funcDecl _ _    => []
-  | .typeDecl _ _    => []
-
-/-- Collect all labeled `exit` targets in a list of statements. -/
-@[expose] def Block.labelsLocal (ss : List (Stmt P C)) : List String :=
-  match ss with
-  | []        => []
-  | s :: rest => Stmt.labelsLocal s ++ Block.labelsLocal rest
-end
-
 /-- The label-conflict freshness check. Returns `false` if no conflict (= ok),
     `true` if there's a conflict. -/
 @[expose, reducible] def hasLabelConflict (loop_num : String) (bss : List (Stmt P C)) : Bool :=
   let arb_iter_facts_label := s!"{loopElimBlockPrefix}arbitrary_iter_facts_{loop_num}"
   let loop_label := s!"{loopElimBlockPrefix}loop_{loop_num}"
-  let body_exit_labels := Block.labelsLocal bss
+  let body_exit_labels := Block.labels bss
   arb_iter_facts_label ∈ body_exit_labels || loop_label ∈ body_exit_labels
 
 /-- The loop case of `Stmt.removeLoopsM`, factored out so the proofs can pattern

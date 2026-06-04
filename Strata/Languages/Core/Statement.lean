@@ -256,18 +256,14 @@ def Command.modifiedOrDefinedVars (c : Command) : List Expression.Ident :=
 instance : HasVarsImp Expression Command where
   definedVars c _ := Command.definedVars c
   modifiedVars := Command.modifiedVars
-  modifiedOrDefinedVars := Command.modifiedOrDefinedVars
 
 instance : HasVarsImp Expression Statement where
   definedVars := Stmt.definedVars
   modifiedVars := Stmt.modifiedVars
-  modifiedOrDefinedVars := Stmt.modifiedOrDefinedVars
 
 instance : HasVarsImp Expression (List Statement) where
   definedVars := Block.definedVars
   modifiedVars := Block.modifiedVars
-  -- order matters for Havoc, so needs to override the default
-  modifiedOrDefinedVars := Block.modifiedOrDefinedVars
 
 ---------------------------------------------------------------------
 

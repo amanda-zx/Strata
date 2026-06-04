@@ -21,8 +21,6 @@ class HasVarsPure (P : PureExpr) (α : Type) where
 class HasVarsImp (P : PureExpr) (α : Type) where
   definedVars : α → Bool/-exclude vars not visible from outside?-/ → List P.Ident
   modifiedVars : α → List P.Ident
-  modifiedOrDefinedVars : α → List P.Ident
-          := λ e ↦ definedVars e false ++ modifiedVars e
 
 /-! # Operator/Function Name Lookup over Commands : HasOpsImp
 

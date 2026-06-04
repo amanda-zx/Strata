@@ -21,6 +21,8 @@ import all Strata.DL.Imperative.StmtSemantics
 import all Strata.DL.Imperative.SemanticsProps
 import all Strata.DL.Util.Relations
 import all Strata.Languages.Core.Statement
+import all Strata.Languages.Core.StatementSemanticsProps
+import all Strata.DL.Util.String
 
 /-! # Loop-Elimination Transformation Correctness
 

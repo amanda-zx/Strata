@@ -187,7 +187,6 @@ instance (P : PureExpr) : HasVarsImp P (Cmds P) where
   definedVars c _ := Cmds.definedVars c
   modifiedVars := Cmds.modifiedVars
   -- order matters for Havoc, so needs to override the default
-  modifiedOrDefinedVars := List.flatMap HasVarsImp.modifiedOrDefinedVars
 
 mutual
 /-- Get all operator/function names referenced by `c`. -/
