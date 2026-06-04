@@ -43,20 +43,35 @@ abbrev MiniPureExpr : PureExpr :=
     TyContext := Unit,
     EvalEnv := Unit }
 
+instance : HasVal MiniPureExpr where
+  value _ := True
+
+instance : HasFvars MiniPureExpr where
+  getFvars _ := []
+
 instance : HasBool MiniPureExpr where
   tt := .tt
   ff := .ff
   tt_is_not_ff := by intro h; cases h
   boolTy := .Bool
+  boolIsVal := ⟨trivial, trivial⟩
 
-instance : HasNot MiniPureExpr where
+instance : HasBoolOps MiniPureExpr where
   not := .not
+  and := fun _ _ => .tt
+  imp := fun _ _ => .tt
 
-instance : HasIntOrder MiniPureExpr where
-  eq := fun _ _ => .tt
-  lt := fun _ _ => .ff
+instance : HasInt MiniPureExpr where
   zero := .ff
   intTy := .Bool
+  isNumeral := fun _ => true
+  numeralIsValue := fun _ _ => trivial
+  zeroIsNumeral := rfl
+  numeralHasNoFvars := fun _ _ => rfl
+
+instance : HasIntOps MiniPureExpr where
+  eq := fun _ _ => .tt
+  lt := fun _ _ => .ff
   decr := fun e => e
 
 ---------------------------------------------------------------------
@@ -141,13 +156,19 @@ theorem progReachesTerminal :
   refine .step _ _ _
     (StepStmt.step_block_body
       (StepStmt.step_seq_inner
-        (StepStmt.step_loop_enter (hasInvFailure := false) htt ?inv_bool ?inv_iff
-          miniEval_wfBool ?meas))) ?_
+        (StepStmt.step_loop_enter
+          (hasInvFailure := false) (hasMeasureFailure := false)
+          htt ?inv_bool ?inv_iff miniEval_wfBool
+          ?meas_bool ?meas_iff ?meas_num))) ?_
   · intro _ hmem; nomatch hmem
   · constructor <;> intro h
     · cases h
     · rcases h with ⟨_, hmem, _⟩; nomatch hmem
-  · intro _ _ h; nomatch h
+  · intro _ h; nomatch h
+  · constructor <;> intro h
+    · cases h
+    · rcases h with ⟨_, hmem, _⟩; nomatch hmem
+  · intro _ h; nomatch h
   -- Now: outer block (L) > seq > seq > body's block (.none) > stmts [exit "L"]
   -- Step 4: descend into the inner seq, then into the body's block,
   --         then through stmts_cons.
@@ -212,13 +233,20 @@ theorem progIteThenReachesTerminal :
     (StepStmt.step_block_body
       (StepStmt.step_seq_inner (StepStmt.step_ite_true htt miniEval_wfBool))) ?_
   refine .step _ _ _
-    (StepStmt.step_block_body (StepStmt.step_seq_inner StepStmt.step_stmts_cons)) ?_
+    (StepStmt.step_block_body
+      (StepStmt.step_seq_inner (StepStmt.step_block_body StepStmt.step_stmts_cons))) ?_
   refine .step _ _ _
     (StepStmt.step_block_body
-      (StepStmt.step_seq_inner (StepStmt.step_seq_inner StepStmt.step_exit))) ?_
+      (StepStmt.step_seq_inner
+        (StepStmt.step_block_body (StepStmt.step_seq_inner StepStmt.step_exit)))) ?_
   refine .step _ _ _
     (StepStmt.step_block_body
-      (StepStmt.step_seq_inner StepStmt.step_seq_exit)) ?_
+      (StepStmt.step_seq_inner
+        (StepStmt.step_block_body StepStmt.step_seq_exit))) ?_
+  -- Inner anonymous block (.none) propagates exit "L" via mismatch.
+  refine .step _ _ _
+    (StepStmt.step_block_body
+      (StepStmt.step_seq_inner (StepStmt.step_block_exit_mismatch (by simp)))) ?_
   refine .step _ _ _ (StepStmt.step_block_body StepStmt.step_seq_exit) ?_
   -- Outer block "L" matches the labeled exit; project store (identity here).
   have hproj : projectStore (P := MiniPureExpr) ρ₀.store ρ₀.store = ρ₀.store := by
@@ -249,14 +277,20 @@ theorem progIteElseReachesTerminal :
     (StepStmt.step_block_body
       (StepStmt.step_seq_inner (StepStmt.step_ite_false hff miniEval_wfBool))) ?rest3
   refine .step _ _ _
-    (StepStmt.step_block_body (StepStmt.step_seq_inner StepStmt.step_stmts_cons)) ?rest4
+    (StepStmt.step_block_body
+      (StepStmt.step_seq_inner (StepStmt.step_block_body StepStmt.step_stmts_cons))) ?rest4
   refine .step _ _ _
     (StepStmt.step_block_body
-      (StepStmt.step_seq_inner (StepStmt.step_seq_inner StepStmt.step_exit))) ?rest5
+      (StepStmt.step_seq_inner
+        (StepStmt.step_block_body (StepStmt.step_seq_inner StepStmt.step_exit)))) ?rest5
   refine .step _ _ _
     (StepStmt.step_block_body
-      (StepStmt.step_seq_inner StepStmt.step_seq_exit)) ?rest6
-  refine .step _ _ _ (StepStmt.step_block_body StepStmt.step_seq_exit) ?rest7
+      (StepStmt.step_seq_inner
+        (StepStmt.step_block_body StepStmt.step_seq_exit))) ?rest6
+  refine .step _ _ _
+    (StepStmt.step_block_body
+      (StepStmt.step_seq_inner (StepStmt.step_block_exit_mismatch (by simp)))) ?rest7
+  refine .step _ _ _ (StepStmt.step_block_body StepStmt.step_seq_exit) ?rest8
   -- Outer block "L" matches the labeled exit; project store (identity here).
   have hproj : projectStore (P := MiniPureExpr) ρ₀.store ρ₀.store = ρ₀.store := by
     funext x; simp [projectStore]; intro _; rfl
@@ -285,14 +319,20 @@ abbrev MiniPureExpr2 : PureExpr :=
     TyContext := Unit,
     EvalEnv := Unit }
 
+instance : HasVal MiniPureExpr2 where
+  value _ := True
+
 instance : HasBool MiniPureExpr2 where
   tt := .tt
   ff := .ff
   tt_is_not_ff := by intro h; cases h
   boolTy := .Bool
+  boolIsVal := ⟨trivial, trivial⟩
 
-instance : HasNot MiniPureExpr2 where
+instance : HasBoolOps MiniPureExpr2 where
   not := .not
+  and := fun _ _ => .tt
+  imp := fun _ _ => .tt
 
 /-- Get free variables from `Expr2`. -/
 def Expr2.getVars : Expr2 → List String
@@ -304,14 +344,17 @@ def Expr2.getVars : Expr2 → List String
 instance : HasVarsPure MiniPureExpr2 Expr2 where
   getVars := Expr2.getVars
 
+instance : HasFvars MiniPureExpr2 where
+  getFvars := Expr2.getVars
+
 instance : HasVarsPure MiniPureExpr2 (Cmd MiniPureExpr2) where
   getVars := Cmd.getVars
 
 /-- Test: `set x := var "y"` has `modifiedOrDefinedVars = ["x"]` (write-set only)
     but `touchedVars = ["x", "y"]` (includes the read variable "y"). -/
 example : (Stmt.cmd (P := MiniPureExpr2)
-    (Cmd.set (P := MiniPureExpr2) "x" (.det (.var "y")) .empty)).modifiedOrDefinedVars
-    = ["x"] := by native_decide
+    (Cmd.set (P := MiniPureExpr2) "x" (.det (.var "y")) .empty)).modifiedOrDefinedVars false
+    =["x"] := by native_decide
 
 example : (Stmt.cmd (P := MiniPureExpr2)
     (Cmd.set (P := MiniPureExpr2) "x" (.det (.var "y")) .empty)).touchedVars
@@ -320,8 +363,8 @@ example : (Stmt.cmd (P := MiniPureExpr2)
 /-- Test: `init z : Bool := var "w"` has `modifiedOrDefinedVars = ["z"]`
     but `touchedVars = ["z", "w"]`. -/
 example : (Stmt.cmd (P := MiniPureExpr2)
-    (Cmd.init (P := MiniPureExpr2) "z" .Bool (.det (.var "w")) .empty)).modifiedOrDefinedVars
-    = ["z"] := by native_decide
+    (Cmd.init (P := MiniPureExpr2) "z" .Bool (.det (.var "w")) .empty)).modifiedOrDefinedVars false
+    =["z"] := by native_decide
 
 example : (Stmt.cmd (P := MiniPureExpr2)
     (Cmd.init (P := MiniPureExpr2) "z" .Bool (.det (.var "w")) .empty)).touchedVars
@@ -331,12 +374,12 @@ example : (Stmt.cmd (P := MiniPureExpr2)
 example : (Block.touchedVars (P := MiniPureExpr2) (C := Cmd MiniPureExpr2)
     [.cmd (Cmd.init (P := MiniPureExpr2) "a" .Bool (.det (.var "b")) .empty),
      .cmd (Cmd.set (P := MiniPureExpr2) "c" (.det (.var "d")) .empty)])
-    = ["a", "c", "b", "d"] := by native_decide
+    = ["c", "a", "b", "d"] := by native_decide
 
 example : (Block.modifiedOrDefinedVars (P := MiniPureExpr2) (C := Cmd MiniPureExpr2)
     [.cmd (Cmd.init (P := MiniPureExpr2) "a" .Bool (.det (.var "b")) .empty),
-     .cmd (Cmd.set (P := MiniPureExpr2) "c" (.det (.var "d")) .empty)])
-    = ["a", "c"] := by native_decide
+     .cmd (Cmd.set (P := MiniPureExpr2) "c" (.det (.var "d")) .empty)] false)
+    = ["c", "a"] := by native_decide
 
 ---------------------------------------------------------------------
 
@@ -520,7 +563,7 @@ theorem loopScopeTest :
   -- Need to reconcile the env shape.
   conv => rhs; rw [show Env.mk storeWithX miniEval false =
     { Env.mk (projectStore storeWithX storeWithXY) miniEval false with
-      hasFailure := false || false } from by simp [hproj, Bool.or_false]]
+      hasFailure := false || false } from by simp [hproj]]
   exact .step _ _ _ StepStmt.step_stmts_nil (.refl _)
 
 ---------------------------------------------------------------------
