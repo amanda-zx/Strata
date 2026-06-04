@@ -38,33 +38,7 @@ structure Env (P : PureExpr) where
 
 /-- A well-formed evaluator extension preserves all `WellFormedSemanticEval*`
     predicates through funcDecl steps.  This is the only step that modifies the
-    evaluator (`step_funcDecl`); all other small-step rules leave it unchanged.
-
-    `preserves_eval_some_on_disjoint_op` (forward) and
-    `preserves_eval_some_on_disjoint_op_back` (backward) together state that
-    the `Option.some` commitment for an expression `e` whose ops don't include
-    `decl.name` is **stable** under extension: `δ σ' e = some v ↔
-    (extendEval δ σ decl) σ' e = some v`.
-
-    A naive equality form (`(extendEval δ σ decl) σ' e = δ σ' e`) is unsound:
-    if some `f ∈ getOps e` transitively references `decl.name` via its body,
-    extension can change `e`'s value via the indirect call path.  The iff at
-    the `some` level is sound under either of two evaluator design invariants:
-
-    1. **Causality (fresh extension):** `decl.name` was not previously bound
-       in `δ`.  Any prior occurrence of `decl.name` inside a function body
-       evaluated under `δ` would have made that body's evaluation `none`
-       (the name can't be resolved).  So if either side commits to `some v`,
-       neither evaluation transitively depends on `decl.name`, and adding
-       `decl` cannot disturb the result.
-
-    2. **Idempotent re-declaration:** if `decl.name` *was* previously bound,
-       the redeclaration must produce a function semantically identical to
-       the existing one (same body, etc.).  The extension is a no-op on
-       evaluation.
-
-    Concrete instantiations (e.g., Core's lookup-table `EvalPureFunc φ`)
-    must respect (1) or (2) by design. -/
+    evaluator (`step_funcDecl`); all other small-step rules leave it unchanged. -/
 structure WFEvalExtension (P : PureExpr) [HasBool P] [HasBoolOps P] [HasFvar P] [HasVal P]
     [HasFvars P] [HasOps P]
     (extendEval : ExtendEval P) : Prop where
@@ -74,14 +48,22 @@ structure WFEvalExtension (P : PureExpr) [HasBool P] [HasBoolOps P] [HasFvar P] 
     WellFormedSemanticEvalVal (extendEval δ σ decl)
   preserves_wfVar : ∀ δ σ decl, WellFormedSemanticEvalVar δ →
     WellFormedSemanticEvalVar (extendEval δ σ decl)
+  /-- If δ already evaluated expression `e` to some value `v`,
+    `extendEval` shouldn't change the returned value. -/
   preserves_eval_some_on_disjoint_op : ∀ δ σ decl σ' e v,
     decl.name ∉ HasOps.getOps (P := P) e →
     δ σ' e = some v →
     (extendEval δ σ decl) σ' e = some v
   /-- The backward (reverse) direction of `preserves_eval_some_on_disjoint_op`:
-      if the *extended* evaluator commits to `some v`, then the original
-      evaluator already did.  Sound under the same causality / idempotent
-      re-declaration design constraint as the forward direction. -/
+      if the extended evaluator reduces `e` to `some v`, and `e` didn't contain
+      any operation using `decl`, then the original evaluator already did `e` .
+      This is supposed to hold by case analysis. Let's assume that `decl` is
+      some function `f`.
+      (1) If `e` directly used `.op f`: contradicts with `decl.name ∉ HasOps.getOps`
+      (2) If `e` didn't use `.op f`, but say use `.op g` and the definition of `g`
+          transitively uses `f`: this is impossible because definition of `g`
+          couldn't have seen `f` before `f` is declared.
+  -/
   preserves_eval_some_on_disjoint_op_back : ∀ δ σ decl σ' e v,
     decl.name ∉ HasOps.getOps (P := P) e →
     (extendEval δ σ decl) σ' e = some v →
@@ -121,13 +103,14 @@ inductive Config (P : PureExpr) (CmdT : Type) : Type where
       The label identifies which block to exit to. -/
   | exiting : String → Env P → Config P CmdT
   /-- A block context: execute the inner config, then consume matching exits.
-      The label is `Option String` — `none` denotes an unnamed block that only
-      catches unlabeled exits.  The `SemanticStore P` is the parent store at
-      block entry; on exit, the result is projected through it so that
-      variables initialized inside the block are not visible outside.
-      The `SemanticEval P` is the parent evaluator at block entry; on exit,
-      the result evaluator is restored to it so that any function declarations
-      introduced inside the block are not visible outside. -/
+      - The block label is `Option String` — `none` denotes an unnamed block, and is only
+        used for scoping of variables; no explicit exit statement can reach this block.
+      - The `SemanticStore P` is the parent store at
+        block entry; on exit, the result is projected through it so that
+        variables initialized inside the block are not visible outside.
+      - The `SemanticEval P` is the parent evaluator at block entry; on exit,
+        the result evaluator is restored to it so that any internal function
+        declarations introduced inside the block are not visible outside. -/
   | block : Option String → SemanticStore P → SemanticEval P → Config P CmdT → Config P CmdT
   /-- A sequence context: execute the first statement (as a sub-config), then
       continue with the remaining statements. -/
@@ -221,7 +204,7 @@ def Config.noFuncDecl : Config P CmdT → Prop
 
     The label list has type `List String` (matching `Stmt.exit`'s mandatory-label
     AST).  An anonymous (`.none`) `Config.block` (introduced by the loop/if's body
-    wrapper) does NOT contribute a label — labeled exits cannot match `.none`,
+    wrapper) does not contribute a label — labeled exits cannot match `.none`,
     and unlabeled exits do not exist as user statements. -/
 @[expose] def Config.exitsCoveredByBlocks : List String → Config P CmdT → Prop
   | labels, .stmt s _ => s.exitsCoveredByBlocks labels
