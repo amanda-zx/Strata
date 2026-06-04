@@ -61,7 +61,7 @@ abbrev Lang.kleene : Lang P where
 
 /-! ## Transform-success helpers: extract sub-transform results -/
 
-omit [HasFvar P]   in
+omit [HasFvar P] [HasFvars P] [HasOps P] [HasInt P] [HasIntOps P] in
 private theorem ite_transform_some_det
     (cond : P.Expr) (tss ess : List (Stmt P (Cmd P))) (md : MetaData P)
     (ns : KleeneStmt P (Cmd P))
@@ -78,7 +78,7 @@ private theorem ite_transform_some_det
   | some _, none => simp [h1, h2, Option.bind] at ht
   | none, _ => simp [h1, Option.bind] at ht
 
-omit [HasFvar P]   in
+omit [HasFvar P] [HasFvars P] [HasOps P] [HasInt P] [HasIntOps P] in
 private theorem ite_transform_some_nondet
     (tss ess : List (Stmt P (Cmd P))) (md : MetaData P)
     (ns : KleeneStmt P (Cmd P))
@@ -93,7 +93,7 @@ private theorem ite_transform_some_nondet
   | some _, none => simp [h1, h2, Option.bind] at ht
   | none, _ => simp [h1, Option.bind] at ht
 
-omit [HasFvar P]   in
+omit [HasFvar P] [HasFvars P] [HasOps P] [HasInt P] [HasIntOps P] in
 private theorem loop_transform_some_det
     (g : P.Expr) (m : Option (String × P.Expr)) (inv : List (String × P.Expr))
     (body : List (Stmt P (Cmd P))) (md : MetaData P)
@@ -111,7 +111,7 @@ private theorem loop_transform_some_det
   | [], some _ => simp [Option.bind] at ht
   | _ :: _, _ => simp [Option.bind] at ht
 
-omit [HasFvar P]   in
+omit [HasFvar P] [HasFvars P] [HasOps P] [HasInt P] [HasIntOps P] in
 private theorem loop_transform_some_nondet
     (m : Option (String × P.Expr)) (inv : List (String × P.Expr))
     (body : List (Stmt P (Cmd P))) (md : MetaData P)
@@ -129,7 +129,7 @@ private theorem loop_transform_some_nondet
   | [], some _ => simp [Option.bind] at ht
   | _ :: _, _ => simp [Option.bind] at ht
 
-omit [HasFvar P]   in
+omit [HasFvar P] [HasFvars P] [HasOps P] [HasInt P] [HasIntOps P] in
 private theorem block_transform_some
     (s : Stmt P (Cmd P)) (rest : List (Stmt P (Cmd P)))
     (ns : KleeneStmt P (Cmd P))
@@ -146,7 +146,7 @@ private theorem block_transform_some
 
 /-! ## exitsCoveredByBlocks from successful transform -/
 
-omit [HasFvar P]   in
+omit [HasFvar P] [HasFvars P] [HasOps P] [HasInt P] [HasIntOps P] in
 private theorem stmtToKleene_some_exitsCovered
     (labels : List String)
     (st : Stmt P (Cmd P)) (ns : KleeneStmt P (Cmd P))
@@ -197,7 +197,7 @@ where
 
 /-! ## noFuncDecl from successful transform -/
 
-omit [HasFvar P]   in
+omit [HasFvar P] [HasFvars P] [HasOps P] [HasInt P] [HasIntOps P] in
 private theorem stmtToKleene_some_noFuncDecl
     (st : Stmt P (Cmd P)) (ns : KleeneStmt P (Cmd P))
     (ht : StmtToKleeneStmt st = some ns) :
@@ -247,6 +247,7 @@ where
 
 /-! ## ReflTransT decomposition helpers -/
 
+omit [HasOps P] in
 private theorem seqT_reaches_terminal
     (extendEval : ExtendEval P)
     {inner : Config P (Cmd P)} {ss : List (Stmt P (Cmd P))} {ρ' : Env P}
@@ -263,6 +264,7 @@ private theorem seqT_reaches_terminal
     match hrest with
     | .step _ _ _ h _ => exact nomatch h
 
+omit [HasOps P] in
 private theorem stmtsT_cons_terminal
     (extendEval : ExtendEval P)
     {s : Stmt P (Cmd P)} {rest : List (Stmt P (Cmd P))} {ρ₀ ρ' : Env P}
@@ -275,6 +277,7 @@ private theorem stmtsT_cons_terminal
     have ⟨ρ₁, h1, h2, hlen⟩ := seqT_reaches_terminal extendEval hrest
     exact ⟨ρ₁, h1, h2, by simp [ReflTransT.len]; omega⟩
 
+omit [HasOps P] in
 /-- Invert a block execution reaching terminal when the inner config cannot
     exit: the inner reaches terminal with a strictly shorter derivation. -/
 private theorem blockT_reaches_terminal_noExit
@@ -305,6 +308,7 @@ private theorem blockT_reaches_terminal_noExit
     match hrest with
     | .step _ _ _ h _ => exact nomatch h
 
+omit [HasOps P] in
 private theorem stmtsT_append_terminal
     (extendEval : ExtendEval P)
     (ss₁ : List (Stmt P (Cmd P))) (s : Stmt P (Cmd P)) (ρ₀ ρ' : Env P)
@@ -566,6 +570,7 @@ private def loop_sim_kleene
 
 /-! ## Core simulation by strong induction on statement/block size -/
 
+omit [HasOps P] in
 private theorem simulation
     (extendEval : ExtendEval P) (sz : Nat) :
     (∀ (st : Stmt P (Cmd P)) (ns : KleeneStmt P (Cmd P)),
@@ -803,6 +808,7 @@ private theorem simulation
               (ih.1 s s' hsz_s hs ρ₀ ρ₁ hwfb hwfv hterm_s)
               (ih.2 rest rest' hsz_r hr ρ₁ ρ' hwfb₁ hwfv₁ hterm_rest)
 
+omit [HasOps P] in
 /-- If det stmt reaches terminal, Kleene transform reaches terminal. -/
 theorem stmtToKleene_terminal
     (extendEval : ExtendEval P)
@@ -815,6 +821,7 @@ theorem stmtToKleene_terminal
     StepKleeneStar P (EvalCmd P) (.stmt ns ρ₀) (.terminal ρ') :=
   (simulation extendEval st.sizeOf).1 st ns (Nat.le_refl _) ht ρ₀ ρ' hwfb hwfv hstar
 
+omit [HasOps P] in
 /-- If det block reaches terminal, Kleene transform reaches terminal. -/
 theorem blockToKleene_terminal
     (extendEval : ExtendEval P)
@@ -1084,6 +1091,7 @@ private noncomputable def loop_canfail_sim_kleene
 
 /-! ## CanFail simulation: mutual induction -/
 
+omit [HasOps P] in
 private theorem canfail_simulation
     (extendEval : ExtendEval P) (sz : Nat) :
     (∀ (st : Stmt P (Cmd P)) (ns : KleeneStmt P (Cmd P)),
@@ -1272,6 +1280,7 @@ private theorem canfail_simulation
 
 /-! ## Main theorem -/
 
+omit [HasOps P] in
 /-- `StmtToKleeneStmt` overapproximates: any terminal env reachable from the
     deterministic execution is also reachable from the nondeterministic one,
     provided the evaluator is well-formed.

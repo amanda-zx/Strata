@@ -501,6 +501,7 @@ variable {P : PureExpr} {CmdT : Type}
   [HasBool P] [HasBoolOps P] [HasFvars P] [HasOps P] [HasInt P] [HasIntOps P]
   {EvalCmd : EvalCmdParam P CmdT} {extendEval : ExtendEval P}
 
+omit [HasOps P] in
 /-- Invert a `.seq` execution reaching terminal in `ReflTransT`: the inner
     terminates first, then the tail stmts run to terminal.  Length bound
     is strict so callers can recurse on `hstar.len`. -/
@@ -520,6 +521,7 @@ theorem seqT_reaches_terminal
     match hrest with
     | .step _ _ _ h _ => exact nomatch h
 
+omit [HasOps P] in
 /-- Invert a `.stmts (s :: rest)` execution reaching terminal in `ReflTransT`. -/
 theorem stmtsT_cons_terminal
     {s : Stmt P CmdT} {rest : List (Stmt P CmdT)} {ρ₀ ρ' : Env P}
@@ -532,6 +534,7 @@ theorem stmtsT_cons_terminal
     have ⟨ρ₁, h1, h2, hlen⟩ := seqT_reaches_terminal hrest
     exact ⟨ρ₁, h1, h2, by simp [ReflTransT.len]; omega⟩
 
+omit [HasOps P] in
 /-- Invert a block execution reaching terminal when the inner config cannot
     exit: the inner reaches terminal with a strictly shorter derivation. -/
 theorem blockT_reaches_terminal_noExit
@@ -562,6 +565,7 @@ theorem blockT_reaches_terminal_noExit
     match hrest with
     | .step _ _ _ h _ => exact nomatch h
 
+omit [HasOps P] in
 /-- Decompose `.stmts (ss₁ ++ [s])` reaching terminal into: a full `.stmts ss₁`
     run to some intermediate `ρ₁` followed by a strictly shorter `s`-run.
     The escape-free hypothesis `hcov` rules out the exiting case. -/
@@ -591,6 +595,7 @@ theorem stmtsT_append_terminal
 
 /-! ## Failing-state decomposition helpers -/
 
+omit [HasOps P] in
 /-- Decompose a `.seq` execution reaching a failing config in `ReflTransT`:
     either failure happens inside `inner`, or `inner` terminates and
     failure happens in the tail. -/
@@ -620,6 +625,7 @@ theorem seqT_canfail
     | .refl _ => exact .inl ⟨_, .refl _, hf, by simp [ReflTransT.len]⟩
     | .step _ _ _ h _ => exact nomatch h
 
+omit [HasOps P] in
 /-- An empty-statement-list run that reaches a failing config must already
     have been failing. -/
 theorem stmts_nil_canfail_env
@@ -635,6 +641,7 @@ theorem stmts_nil_canfail_env
       | refl => exact hf
       | step _ _ _ h _ => cases h
 
+omit [HasOps P] in
 /-- Decompose `.stmts [s] ρ₀` reaching a failing config: extract a failing
     trace from `.stmt s ρ₀`, with a length bound `≤`. -/
 theorem stmtsT_singleton_canfail
@@ -664,6 +671,7 @@ theorem stmtsT_singleton_canfail
       refine ⟨_, h1, hf_x, ?_⟩
       simp [ReflTransT.len] at hlen ⊢; omega
 
+omit [HasOps P] in
 /-- Decompose `.stmts (ss₁ ++ [s])` reaching a failing config: either
     failure happens before reaching `s`, or `ss₁` terminates at `ρ₁` and
     the failure happens in `s`. -/
@@ -715,6 +723,7 @@ theorem stmtsT_append_canfail
           exact .inr ⟨ρ₂, ReflTrans_Transitive _ _ _ _ hpre hterm_rest,
             cfg₂, hs, hf₂, by simp [ReflTransT.len]; omega⟩
 
+omit [HasOps P] in
 /-- Unwrap a failing `.block l σ_parent e_parent inner` execution to a failing run on `inner`. -/
 theorem block_canfail_to_inner
     {inner : Config P CmdT} {l : Option String} {σ_parent : SemanticStore P}
@@ -745,6 +754,7 @@ theorem block_canfail_to_inner
       | .refl _ => refine ⟨_, ?_, .refl _⟩; simp [Config.getEnv] at hf ⊢; exact hf
       | .step _ _ _ h _ => exact nomatch h
 
+omit [HasOps P] in
 /-- Type-level variant of `block_canfail_to_inner` preserving length bounds
     on the inner derivation.  Required when the inner derivation must
     decrease for a recursive call. -/
@@ -783,6 +793,7 @@ theorem blockT_canfail_to_inner
   termination_by hstar.len
   decreasing_by all_goals (simp_wf; try simp [ReflTransT.len]; try omega)
 
+omit [HasOps P] in
 /-- Prop-level seq-canfail decomposition (without length bounds). -/
 theorem seq_canfail_prop
     {inner : Config P CmdT} {ss : List (Stmt P CmdT)} {cfg : Config P CmdT}

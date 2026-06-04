@@ -32,13 +32,13 @@ namespace Hoare
 
 /-! ## Parametric Hoare rules -/
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 /-- False precondition proves anything -/
 theorem false_pre (s : L.StmtT) (Post : Env P → Prop) :
     Triple L (fun _ => False) s Post := by
   intro _ _ hpre; exact absurd hpre id
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 /-- Consequence (weakening): strengthen precondition, weaken postconditions. -/
 theorem consequence
     {Pre Pre' : Env P → Prop} {Post Post' : Env P → Prop} {s : L.StmtT}
@@ -57,7 +57,7 @@ section StmtRules
 variable {CmdT : Type} (evalCmd : EvalCmdParam P CmdT) (extendEval : ExtendEval P)
 variable (isAtAssertFn : Config P CmdT → AssertId P → Prop)
 
- omit [HasFvar P] [HasVal P] in
+ omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- Empty statement list is skip. -/
 theorem skip_block (Pre : Env P → Prop) :
     TripleBlock evalCmd extendEval Pre [] Pre := by
@@ -74,7 +74,7 @@ theorem skip_block (Pre : Env P → Prop) :
     | step _ _ _ h _ => cases h with
       | step_stmts_nil => rename_i r; cases r with | step _ _ _ h _ => cases h
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 /-- A single command. -/
 theorem cmd (c : CmdT) (Pre Post : Env P → Prop)
     (h : ∀ ρ₀ σ' f, Pre ρ₀ → WellFormedSemanticEvalBool ρ₀.eval → ρ₀.hasFailure = false →
@@ -91,7 +91,7 @@ theorem cmd (c : CmdT) (Pre Post : Env P → Prop)
         simp [hf₀] at hp ⊢; exact ⟨hp, hfeq⟩
       | step _ _ _ h _ => exact nomatch h
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 /-- Sequential cons. -/
 theorem seq_cons {s : Stmt P CmdT} {ss : List (Stmt P CmdT)}
     {Pre Mid Post : Env P → Prop}
@@ -126,7 +126,7 @@ theorem seq_cons {s : Stmt P CmdT} {ss : List (Stmt P CmdT)}
           have ⟨hmid, hf₁⟩ := h₁ ρ₀ ρ₁ hpre hwfb hf₀ hterm_s
           exact h₂ ρ₁ ρ' hmid (hwfb_preserved ρ₁ hterm_s) hf₁ (.inr ⟨lbl, hexit_ss⟩)
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 /-- Lift a `TripleBlock` to a `Triple` by wrapping in a block.
     The postcondition `Post` is required to be stable under `projectStore`
     (it only references variables defined before the block). -/
@@ -147,7 +147,7 @@ theorem TripleBlock.toTriple {ss : List (Stmt P CmdT)} {l : String} {md : MetaDa
         have ⟨hpost, hf⟩ := h ρ₀ ρ_inner hpre hwfb hf₀ (.inr ⟨lbl, hexit⟩)
         subst heq; exact hpost_proj ρ_inner _ _ hpost hf
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 /-- Lift a `Triple` to a `TripleBlock` for a singleton list. -/
 theorem Triple.toTripleBlock {s : Stmt P CmdT}
     {Pre Post : Env P → Prop}
@@ -180,14 +180,14 @@ theorem Triple.toTripleBlock {s : Stmt P CmdT}
           | step _ _ _ h _ => cases h with
             | step_stmts_nil => rename_i r; cases r with | step _ _ _ h _ => cases h
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 /-- Empty block is skip. -/
 theorem skip (l : String) (md : MetaData P) (Pre : Env P → Prop)
     (hpre_proj : PostWF Pre) :
     Triple (Lang.imperative P CmdT evalCmd extendEval isAtAssertFn) Pre (.block l [] md) Pre :=
   TripleBlock.toTriple evalCmd extendEval isAtAssertFn (skip_block evalCmd extendEval Pre) hpre_proj
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 /-- If-then-else rule. -/
 theorem ite {c : P.Expr} {tss ess : List (Stmt P CmdT)} {md : MetaData P}
     {Pre Post : Env P → Prop}
@@ -227,6 +227,7 @@ section StandardConnection
 variable (P' : PureExpr) [HasFvar P'] [HasFvars P'] [HasOps P'] [HasBool P'] [HasBoolOps P'] [HasInt P'] [HasIntOps P']
 variable (extendEval : ExtendEval P')
 
+omit [HasOps P'] in
 /-- **Direction 1**: Hoare triple implies assert validity for `PredicatedStmt`. -/
 theorem hoareTriple_implies_assertValid
     (pre_label : String) (pre_expr : P'.Expr) (pre_md : MetaData P')
@@ -314,6 +315,7 @@ theorem hoareTriple_implies_assertValid
                         | step _ _ _ h _ => exact absurd h (by intro h; cases h)
 
 
+omit [HasOps P'] in
 /-- **Direction 2**: Assert validity for `PredicatedStmt` implies Hoare triple. -/
 theorem allAssertsValid_implies_hoareTriple
     (pre_label : String) (pre_expr : P'.Expr) (pre_md : MetaData P')
@@ -388,7 +390,7 @@ end Hoare
 
 namespace Transform
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 theorem sound_comp (L₁ L₂ L₃ : Lang P)
     (T₁ : L₁.StmtT → Option L₂.StmtT) (T₂ : L₂.StmtT → Option L₃.StmtT)
     (h₁ : Sound L₁ L₂ T₁) (h₂ : Sound L₂ L₃ T₂) :
@@ -399,24 +401,25 @@ theorem sound_comp (L₁ L₂ L₃ : Lang P)
   | some s' => rw [h1] at hrun; exact h₁ s s' a h1 (h₂ s' s'' a hrun hvalid)
   | none => rw [h1] at hrun; exact absurd hrun (by nofun)
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 theorem sound_assertValid (L₁ L₂ : Lang P)
     (T : L₁.StmtT → Option L₂.StmtT) (a : AssertId P)
     (s : L₁.StmtT) (s' : L₂.StmtT)
     (ht : T s = some s') (hsound : Sound L₁ L₂ T) (hvalid : AssertValid L₂ s' a) :
     AssertValid L₁ s a := hsound s s' a ht hvalid
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 theorem sound_allAsserts (L₁ L₂ : Lang P)
     (T : L₁.StmtT → Option L₂.StmtT)
     (s : L₁.StmtT) (s' : L₂.StmtT) (ht : T s = some s')
     (hsound : Sound L₁ L₂ T) (hvalid : AllAssertsValid L₂ s') :
     AllAssertsValid L₁ s := fun a => hsound s s' a ht (hvalid a)
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 theorem sound_id : Sound L L some := by
   intro s s' a ht hvalid; simp at ht; subst ht; exact hvalid
 
+omit [HasOps P] [HasVal P] in
 /-- If `T` overapproximates and a Hoare triple holds on `T(st)` in L₂,
     then the triple holds on `st` in L₁. -/
 theorem overapproximates_triple (L₁ L₂ : Lang P)
@@ -435,6 +438,7 @@ theorem overapproximates_triple (L₁ L₂ : Lang P)
   have hr := hsem [newPrefix] st s' ht trivial hmem hpd ρ₀ declaredFuncs (hswf ρ₀ hpre)
   exact htriple ρ₀ ρ' hpre hwfb hf₀ (hr.1 ρ' |>.1 hstar)
 
+omit [HasOps P] [HasVal P] in
 /-- `OverapproximatesWhen` implies `OverapproximatesAggressivelyWhen` (same
     precondition).  An exact transform that handles all preconditioned inputs
     is also an aggressive transform that handles them. -/
@@ -450,6 +454,7 @@ theorem OverapproximatesWhen.toAggressivelyWhen (L₁ L₂ : Lang P)
   · intro lbl ρ' hstar
     exact .inr (fun _ => (hr.1 ρ').2 lbl hstar)
 
+omit [HasOps P] [HasVal P] in
 /-- `Overapproximates` implies `OverapproximatesAggressively`. -/
 theorem Overapproximates.toAggressive (L₁ L₂ : Lang P)
     (T : L₁.StmtT → Option L₂.StmtT) (newPrefix : String)
@@ -457,6 +462,7 @@ theorem Overapproximates.toAggressive (L₁ L₂ : Lang P)
     OverapproximatesAggressively L₁ L₂ T newPrefix :=
   OverapproximatesWhen.toAggressivelyWhen L₁ L₂ T (fun _ => True) newPrefix h
 
+omit [HasOps P] [HasVal P] in
 /-- Precondition strengthening for `OverapproximatesWhen` -/
 theorem OverapproximatesWhen.strengthen (L₁ L₂ : Lang P)
     (T : L₁.StmtT → Option L₂.StmtT) {pre pre' : L₁.StmtT → Prop}
@@ -467,6 +473,7 @@ theorem OverapproximatesWhen.strengthen (L₁ L₂ : Lang P)
   intro prefixIdents st st' ht hpre' hmem hpd ρ₀ declaredFuncs hswf
   exact h prefixIdents st st' ht (himp st hpre') hmem hpd ρ₀ declaredFuncs hswf
 
+omit [HasOps P] [HasVal P] in
 /-- Precondition strengthening for `OverapproximatesAggressivelyWhen`. -/
 theorem OverapproximatesAggressivelyWhen.strengthen (L₁ L₂ : Lang P)
     (T : L₁.StmtT → Option L₂.StmtT) {pre pre' : L₁.StmtT → Prop}
@@ -477,6 +484,7 @@ theorem OverapproximatesAggressivelyWhen.strengthen (L₁ L₂ : Lang P)
   intro prefixIdents st st' ht hpre' hmem hpd ρ₀ declaredFuncs hswf
   exact h prefixIdents st st' ht (himp st hpre') hmem hpd ρ₀ declaredFuncs hswf
 
+omit [HasOps P] [HasVal P] in
 /-- An unconditional `Overapproximates` is the strongest case: it gives
     `OverapproximatesWhen` for ANY precondition. -/
 theorem Overapproximates.toWhen (L₁ L₂ : Lang P)
@@ -486,6 +494,7 @@ theorem Overapproximates.toWhen (L₁ L₂ : Lang P)
     OverapproximatesWhen L₁ L₂ T pre newPrefix :=
   OverapproximatesWhen.strengthen L₁ L₂ T newPrefix (fun _ _ => trivial) h
 
+omit [HasOps P] [HasVal P] in
 /-- An unconditional `OverapproximatesAggressively` likewise gives
     `OverapproximatesAggressivelyWhen` for any precondition. -/
 theorem OverapproximatesAggressively.toWhen (L₁ L₂ : Lang P)
@@ -495,6 +504,7 @@ theorem OverapproximatesAggressively.toWhen (L₁ L₂ : Lang P)
     OverapproximatesAggressivelyWhen L₁ L₂ T pre newPrefix :=
   OverapproximatesAggressivelyWhen.strengthen L₁ L₂ T newPrefix (fun _ _ => trivial) h
 
+omit [HasOps P] [HasVal P] in
 /-- Hoare-triple corollary for `OverapproximatesWhen`: if `T` overapproximates
     when `pre` holds, and the source state's WF (under `Pre`) implies `pre st`,
     then a Hoare triple on `T(st)` in L₂ lifts to a Hoare triple on `st` in L₁.
@@ -530,7 +540,7 @@ section ImperativeStmts
 variable {CmdT : Type} (evalCmd : EvalCmdParam P CmdT) (extendEval : ExtendEval P)
 variable (isAtAssertFn : Config P CmdT → AssertId P → Prop)
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- Decompose a seq execution reaching a config with `hasFailure = true`:
     either the inner config reaches a failing config, or the inner terminates
     and the tail stmts reach a failing config. -/
@@ -796,7 +806,7 @@ private theorem overapproximatesAggressively_stmts_canfail
 
 /-! ## Block / ite execution helpers (generic over `CmdT`/`evalCmd`/`extendEval`) -/
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- A terminal execution of the block body lifts to a terminal execution of
     the enclosing block statement (with parent-store projection applied). -/
 theorem block_wrap_terminal
@@ -811,7 +821,7 @@ theorem block_wrap_terminal
       (block_inner_star P evalCmd extendEval _ _ (some l) ρ₀.store ρ₀.eval h)
       (.step _ _ _ .step_block_done (.refl _)))
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- Taking the false/else branch of a det-ite with empty else-block terminates at the
     same env (after scoped-ite projection, which is identity on self). -/
 theorem ite_det_false_empty_terminal
@@ -835,7 +845,7 @@ theorem ite_det_false_empty_terminal
   rw [henv] at h_block
   exact .step _ _ _ (.step_ite_false hg_ff hwfb) h_block
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- Taking the false/else branch of a nondet-ite with empty else-block terminates at the
     same env (after scoped-ite projection, which is identity on self). -/
 theorem ite_nondet_false_empty_terminal
@@ -857,7 +867,7 @@ theorem ite_nondet_false_empty_terminal
   rw [henv] at h_block
   exact .step _ _ _ .step_ite_nondet_false h_block
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- An exiting execution of the block body whose label does NOT match the
     block's label lifts to an exiting execution of the enclosing block. -/
 theorem block_wrap_exiting_mismatch
@@ -873,7 +883,7 @@ theorem block_wrap_exiting_mismatch
       (block_inner_star P evalCmd extendEval _ _ (some l) ρ₀.store ρ₀.eval h)
       (.step _ _ _ (.step_block_exit_mismatch (fun h => hne (Option.some.inj h).symm)) (.refl _)))
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- An exiting execution of the block body whose label matches the
     block's label lifts to a TERMINAL execution of the enclosing block. -/
 theorem block_wrap_exiting_match
@@ -888,7 +898,7 @@ theorem block_wrap_exiting_match
       (block_inner_star P evalCmd extendEval _ _ (some l) ρ₀.store ρ₀.eval h)
       (.step _ _ _ (.step_block_exit_match rfl) (.refl _)))
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- Refined inversion of `.block` reaching `.terminal`: the inner config either
     terminates or exits with the matching label, and the final env is the parent
     projection of that inner env. -/
@@ -929,7 +939,7 @@ theorem block_reaches_terminal_refined
     | step_block_exit_mismatch =>
       subst htgt; cases hrest with | step _ _ _ h _ => cases h
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- Refined inversion of `.block` reaching `.exiting`: the inner config exits
     with the SAME label (forced different from the block's label), and the
     final env is the parent projection of that inner env. -/
@@ -967,7 +977,7 @@ theorem block_reaches_exiting_refined
       | refl => exact ⟨_, fun heq => hne (congrArg Option.some heq.symm), .refl _, rfl⟩
       | step _ _ _ h _ => cases h
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- A head statement that exits causes the cons list to exit with the same label. -/
 theorem stmts_cons_exiting
     (s : Stmt P CmdT) (ss : List (Stmt P CmdT)) (lbl : String)
@@ -980,7 +990,7 @@ theorem stmts_cons_exiting
       (seq_inner_star P evalCmd extendEval _ _ ss h)
       (.step _ _ _ .step_seq_exit (.refl _)))
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 /-- Lifting CanFail from a head statement to a block (cons of statement list). -/
 theorem canFail_head_to_block
     (s : Stmt P CmdT) (ss : List (Stmt P CmdT)) (ρ₀ : Env P)
@@ -993,7 +1003,7 @@ theorem canFail_head_to_block
       (.step _ _ _ .step_stmts_cons (.refl _))
       (seq_inner_star P evalCmd extendEval _ _ ss hreach)
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- Lifting CanFail from a tail block to the cons block, given the head terminates. -/
 theorem canFail_tail_to_block
     (s : Stmt P CmdT) (ss : List (Stmt P CmdT)) (ρ₀ ρ₁ : Env P)
@@ -1006,7 +1016,7 @@ theorem canFail_tail_to_block
       (stmts_cons_step P evalCmd extendEval s ss ρ₀ ρ₁ hhead)
       hreach⟩
 
-omit [HasVal P] in
+omit [HasVal P] [HasOps P] in
 /-- A failing block body lifts to a failing block statement. -/
 theorem canFailBlock_to_canFail_block
     (l : String) (bss : List (Stmt P CmdT)) (md : MetaData P) (ρ₀ : Env P)
@@ -1019,7 +1029,7 @@ theorem canFailBlock_to_canFail_block
       (step_block_enter P evalCmd extendEval l bss md ρ₀)
       (block_inner_star P evalCmd extendEval _ _ (.some l) ρ₀.store ρ₀.eval hreach)⟩
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- CanFail in a prefix lifts to CanFail in `prefix ++ suffix`. -/
 theorem canFailBlock_append_left
     (ss₁ ss₂ : List (Stmt P CmdT)) (ρ₀ : Env P)
@@ -1070,7 +1080,7 @@ theorem canFailBlock_append_left
             exact ⟨_, hf, .step _ _ _ .step_seq_exit (.refl _)⟩
           | step _ _ _ h _ => cases h⟩
 
-omit [HasFvar P] [HasVal P] in
+omit [HasFvar P] [HasVal P] [HasOps P] in
 /-- CanFail in a suffix lifts to CanFail in `prefix ++ suffix`, given the prefix terminates. -/
 theorem canFailBlock_append_right
     (ss₁ ss₂ : List (Stmt P CmdT)) (ρ₀ ρ₁ : Env P)

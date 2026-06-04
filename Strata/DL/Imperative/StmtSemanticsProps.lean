@@ -56,6 +56,7 @@ variable
   (EvalCmd : EvalCmdParam P CmdT)
   (extendEval : ExtendEval P)
 
+omit [HasOps P] in
 /-- Empty statement list evaluation. -/
 theorem evalStmtsSmallNil
     (ρ : Env P) :
@@ -63,6 +64,7 @@ theorem evalStmtsSmallNil
   unfold EvalStmtsSmall
   exact .step _ _ _ StepStmt.step_stmts_nil (.refl _)
 
+omit [HasOps P] in
 /-- Terminal configurations are indeed terminal. -/
 theorem terminalIsTerminal
     (ρ : Env P) :
@@ -71,6 +73,7 @@ theorem terminalIsTerminal
   intro c' h
   cases h
 
+omit [HasOps P] in
 /-- Helper: if the inner config of a `.seq` takes multiple steps, the
     enclosing `.seq` takes the same number of steps.
     Proved by induction on the multi-step derivation. -/
@@ -86,6 +89,7 @@ theorem seq_inner_star
   | step _ mid _ hstep _ ih =>
     exact .step _ _ _ (.step_seq_inner hstep) ih
 
+omit [HasOps P] in
 /-- Helper: if the inner config of a `.block` takes multiple steps, the
     enclosing `.block` takes the same number of steps. -/
 theorem block_inner_star
@@ -100,6 +104,7 @@ theorem block_inner_star
   | refl => exact .refl _
   | step _ mid _ hstep _ ih => exact .step _ _ _ (.step_block_body hstep) ih
 
+omit [HasOps P] in
 /-- When executing `.stmts (s :: ss) ρ`, if the head statement `s`
     multi-steps to `.terminal ρ'`, then the whole list multi-steps to
     `.stmts ss ρ'`.
@@ -130,6 +135,7 @@ theorem stmts_cons_step
 
 /-! ## Inversion lemmas for seq and block execution -/
 
+omit [HasOps P] in
 /-- Invert a seq execution reaching terminal: the inner terminates,
     then the tail stmts run to terminal. -/
 theorem seq_reaches_terminal
@@ -154,6 +160,7 @@ theorem seq_reaches_terminal
     | step_seq_done => subst htgt; exact ⟨_, .refl _, hrest⟩
     | step_seq_exit => subst htgt; cases hrest with | step _ _ _ h _ => cases h
 
+omit [HasOps P] in
 /-- Invert a seq execution reaching exiting: either the inner exited
     (propagated), or the inner terminated and the tail exited. -/
 theorem seq_reaches_exiting
@@ -181,6 +188,7 @@ theorem seq_reaches_exiting
     | step_seq_done => subst htgt; exact .inr ⟨_, .refl _, hrest⟩
     | step_seq_exit => exact .inl (htgt ▸ hrest)
 
+omit [HasOps P] in
 /-- Invert a block execution reaching terminal: the inner either
     terminated or exited (caught by the block).  In both cases the inner
     reaches a config whose env projects to `ρ'` via the parent store. -/
@@ -220,6 +228,7 @@ theorem block_reaches_terminal
     | step_block_exit_mismatch =>
       subst htgt; cases hrest with | step _ _ _ h _ => cases h
 
+omit [HasOps P] in
 /-- Invert a block execution reaching exiting: the inner must have
     exited with a label that didn't match the block.  The env is projected. -/
 theorem block_reaches_exiting
@@ -251,6 +260,7 @@ theorem block_reaches_exiting
 
 /-! ## Trace construction helpers -/
 
+omit [HasOps P] in
 /-- Entering a block: a single step from `.stmt (.block l body md) ρ`
     to `.block (.some l) (.stmts body ρ)`. -/
 theorem step_block_enter (l : String) (body : List (Stmt P CmdT))
@@ -259,6 +269,7 @@ theorem step_block_enter (l : String) (body : List (Stmt P CmdT))
       (.stmt (.block l body md) ρ) (.block (.some l) ρ.store ρ.eval (.stmts body ρ)) :=
   .step _ _ _ .step_block (.refl _)
 
+omit [HasOps P] in
 /-- If a prefix of a statement list terminates, the full list steps
     to the suffix starting from the terminal environment. -/
 theorem stmts_prefix_terminal_append
@@ -280,6 +291,7 @@ theorem stmts_prefix_terminal_append
         exact ReflTrans_Transitive _ _ _ _
           (stmts_cons_step P EvalCmd extendEval s (rest ++ sfx) ρ ρ₁ h_s) (ih ρ₁ h_r)
 
+omit [HasOps P] in
 /-- Decompose a terminating execution of `ss₁ ++ ss₂` into a terminating
     execution of `ss₁` followed by a terminating execution of `ss₂`. -/
 theorem stmts_append_terminates
@@ -427,6 +439,7 @@ private def step_simulation
       | _ => exact nomatch heq.2.2.2
     | _ => exact nomatch heq
 
+omit [HasOps P] in
 /-- The terminal state's store and eval are independent of the starting
     `hasFailure` flag.  Proved by simulation: each step preserves
     store/eval equivalence, so the terminal states agree. -/
@@ -455,6 +468,7 @@ theorem smallStep_hasFailure_irrel
 
 /-! ## Well-paired exits: preservation and no-escape -/
 
+omit [HasBool P] [HasBoolOps P] [HasFvars P] [HasOps P] [HasInt P] [HasIntOps P] in
 /-- Helper: when the inner of a block reaches `.exiting l` and the
     block's label (if some) doesn't match `l`, then `l` must be in the outer
     labels list.  The conclusion is `l ∈ labels`, which is exactly the
@@ -476,6 +490,7 @@ private theorem block_exit_mismatch_unfold {labels : List String}
     · exact absurd (by rw [hh]) hne
     · exact hh
 
+omit [HasOps P] in
 /-- A single step preserves `Config.exitsCoveredByBlocks`. -/
 theorem step_preserves_exitsCoveredByBlocks
     (labels : List String)
@@ -532,6 +547,7 @@ theorem step_preserves_exitsCoveredByBlocks
     intro labels hwp
     exact block_exit_mismatch_unfold (P := P) (CmdT := CmdT) hwp hne
 
+omit [HasOps P] in
 /-- Well-paired statements cannot escape via `.exiting`:
     if all exits in `s` are caught by enclosing blocks
     (`s.exitsCoveredByBlocks []`), then `s` never reaches `.exiting`. -/
@@ -555,6 +571,7 @@ theorem exitsCoveredByBlocks_noEscape
   | step _ _ _ hstep _ ih =>
     exact ih (step_preserves_exitsCoveredByBlocks P EvalCmd extendEval [] _ _ hstep hwp_c)
 
+omit [HasOps P] in
 /-- Well-paired statement lists cannot escape via `.exiting`:
     if all exits in `bss` are caught by enclosing blocks
     (`Block.exitsCoveredByBlocks [] bss`), then `.stmts bss ρ` never reaches `.exiting`. -/
@@ -576,6 +593,7 @@ theorem block_exitsCoveredByBlocks_noEscape
   | step _ _ _ hstep _ ih =>
     exact ih (step_preserves_exitsCoveredByBlocks P EvalCmd extendEval [] _ _ hstep hwp_c)
 
+omit [HasOps P] in
 /-- If `.block l inner →* cfg`, the inner config never reaches `.exiting`,
     and `cfg` is neither terminal nor exiting, then `cfg = .block l inner'`
     for some `inner'` with `inner →* inner'`. -/
@@ -617,6 +635,7 @@ theorem block_star_extract_inner
 
 /-! ## noFuncDecl preserves eval (small-step) -/
 
+omit [HasOps P] in
 /-- A single step preserves eval when noFuncDecl holds.
     The only step that changes eval is step_funcDecl, which is excluded. -/
 private theorem step_preserves_eval_noFuncDecl
@@ -710,6 +729,7 @@ private theorem step_preserves_eval_noFuncDecl
     simp only [Config.getEnv]
     exact hnofd.2
 
+omit [HasOps P] in
 /-- When a statement has no function declarations, small-step execution
     preserves the evaluator. -/
 theorem smallStep_noFuncDecl_preserves_eval
@@ -729,6 +749,7 @@ theorem smallStep_noFuncDecl_preserves_eval
     have ⟨heq, hnofd_mid⟩ := step_preserves_eval_noFuncDecl P EvalCmd extendEval _ _ hstep hnofd_c
     rw [ih hnofd_mid, heq]
 
+omit [HasOps P] in
 /-- When a block has no function declarations, small-step execution
     preserves the evaluator. -/
 theorem smallStep_noFuncDecl_preserves_eval_block
@@ -748,6 +769,7 @@ theorem smallStep_noFuncDecl_preserves_eval_block
     have ⟨heq, hnofd_mid⟩ := step_preserves_eval_noFuncDecl P EvalCmd extendEval _ _ hstep hnofd_c
     rw [ih hnofd_mid, heq]
 
+omit [HasOps P] in
 /-- Alias for `smallStep_noFuncDecl_preserves_eval_block`, matching the
     `Block.noFuncDecl` naming convention. -/
 theorem block_noFuncDecl_preserves_eval
@@ -757,6 +779,7 @@ theorem block_noFuncDecl_preserves_eval
     ρ'.eval = ρ.eval :=
   smallStep_noFuncDecl_preserves_eval_block P EvalCmd extendEval ss ρ ρ' hnofd hterm
 
+omit [HasOps P] in
 /-- `.exiting` variant: When a block has no function declarations, an exiting
     execution preserves the evaluator. -/
 theorem block_noFuncDecl_preserves_eval_exiting
@@ -914,7 +937,7 @@ theorem star_preserves_cfg_wfVar
   | step _ _ _ hstep _ ih =>
     exact ih (step_preserves_wfVar_wfExtend P EvalCmd extendEval hwf_ext _ _ hstep hwfvar)
 
-set_option linter.unusedSectionVars false in
+omit [HasFvars P] [HasOps P] [HasIntOps P] [HasFvar P] [HasVal P] in
 /-- `Config.wfBool` implies `WellFormedSemanticEvalBool` on the current
     config's eval (the inner eval after walking through any blocks). -/
 theorem Config.wfBool_implies_wfEval (cfg : Config P CmdT) :
@@ -924,7 +947,7 @@ theorem Config.wfBool_implies_wfEval (cfg : Config P CmdT) :
   | block _ _ _ inner ih => intro h; exact ih h.2
   | seq inner _ ih => intro h; exact ih h
 
-set_option linter.unusedSectionVars false in
+omit [HasBool P] [HasBoolOps P] [HasFvars P] [HasOps P] [HasIntOps P] [HasFvar P] in
 theorem Config.wfVal_implies_wfEval (cfg : Config P CmdT) :
     cfg.wfVal → WellFormedSemanticEvalVal cfg.getEnv.eval := by
   induction cfg with
@@ -932,7 +955,7 @@ theorem Config.wfVal_implies_wfEval (cfg : Config P CmdT) :
   | block _ _ _ inner ih => intro h; exact ih h.2
   | seq inner _ ih => intro h; exact ih h
 
-set_option linter.unusedSectionVars false in
+omit [HasBool P] [HasBoolOps P] [HasFvars P] [HasOps P] [HasIntOps P] [HasVal P] in
 theorem Config.wfVar_implies_wfEval (cfg : Config P CmdT) :
     cfg.wfVar → WellFormedSemanticEvalVar cfg.getEnv.eval := by
   induction cfg with
@@ -1241,6 +1264,7 @@ theorem block_preserves_eval_on_disjoint_exiting
   have hiff := h v
   simpa [Config.getEnv] using hiff
 
+omit [HasOps P] in
 /-- Bundles `block_preserves_eval_on_disjoint` with `funcDeclNames_disjoint_of_defUseOk`:
     when the block's `defUseWellFormed` holds against `defined`, every expression `e`
     whose ops are all in `declared` is `Option.some`-monotone-preserved. -/
@@ -1262,6 +1286,7 @@ theorem block_preserves_eval_via_defUseOk
   rw [h_decl] at h_undecl
   cases h_undecl
 
+omit [HasOps P] in
 theorem block_preserves_eval_via_defUseOk_exiting
     [DecidableEq P.Ident] [HasVarsImp P CmdT] [HasVarsPure P CmdT]
     [HasOps P] [HasOpsImp P CmdT]
@@ -1281,6 +1306,7 @@ theorem block_preserves_eval_via_defUseOk_exiting
   rw [h_decl] at h_undecl
   cases h_undecl
 
+omit [HasOps P] in
 /-- Statement-level analog of `block_preserves_eval_via_defUseOk` (terminal). -/
 theorem stmt_preserves_eval_via_defUseOk
     [DecidableEq P.Ident] [HasVarsImp P CmdT] [HasVarsPure P CmdT]
@@ -1305,6 +1331,7 @@ theorem stmt_preserves_eval_via_defUseOk
   intro v
   simpa [Config.getEnv] using h v
 
+omit [HasOps P] in
 /-- Statement-level analog of `block_preserves_eval_via_defUseOk_exiting`. -/
 theorem stmt_preserves_eval_via_defUseOk_exiting
     [DecidableEq P.Ident] [HasVarsImp P CmdT] [HasVarsPure P CmdT]
@@ -1336,7 +1363,7 @@ section
 variable (P : PureExpr) [HasFvar P] [HasBool P] [HasBoolOps P] [HasFvars P] [HasOps P] [HasInt P] [HasIntOps P]
 variable (extendEval : ExtendEval P)
 
-omit [HasFvar P] in
+omit [HasFvar P] [HasOps P] in
 /-- If a config has no matching assert, then `isAtAssert` doesn't match. -/
 private theorem noMatchingAssert_not_isAtAssert
     (cfg : Config P (Cmd P)) (label : String) (expr : P.Expr)
@@ -1380,7 +1407,7 @@ private theorem noMatchingAssert_not_isAtAssert
   | .block _ _ _ inner => exact noMatchingAssert_not_isAtAssert inner label expr hno
   | .seq inner _ => exact noMatchingAssert_not_isAtAssert inner label expr hno.1
 
-omit [HasFvar P] [HasBool P] [HasBoolOps P] [HasInt P] [HasIntOps P] in
+omit [HasFvar P] [HasBool P] [HasBoolOps P] [HasInt P] [HasIntOps P] [HasFvars P] [HasOps P] in
 /-- Helper: `Stmts.noMatchingAssert` for concatenation. -/
 private theorem stmts_noMatchingAssert_append
     (ss₁ ss₂ : List (Stmt P (Cmd P))) (label : String)
@@ -1433,6 +1460,7 @@ private def step_preserves_noMatchingAssert
   | step_block_exit_match => trivial
   | step_block_exit_mismatch => trivial
 
+omit [HasOps P] in
 /-- The syntactic check implies that no reachable config from `st`
     satisfies `isAtAssert` for the given label and expression. -/
 theorem noMatchingAssert_implies_no_reachable_assert
@@ -1456,6 +1484,7 @@ theorem noMatchingAssert_implies_no_reachable_assert
 
 /-! ## isAtAssert inversion lemmas -/
 
+omit [HasOps P] in
 /-- If execution inside a block reaches a config where isAtAssert holds,
     then the config must be `.block label inner` where `inner` is reachable
     from the block's body and satisfies `isAtAssert`. -/
@@ -1485,6 +1514,7 @@ theorem block_isAtAssert_inner
       | refl => exact absurd hat (by simp [isAtAssert])
       | step _ _ _ h _ => exact absurd h (by intro h; cases h)
 
+omit [HasOps P] in
 /-- If execution inside a seq reaches a config where isAtAssert holds,
     then either the inner config matches (first disjunct), or the inner
     completed and we're in the tail (second disjunct). -/
@@ -1515,6 +1545,7 @@ theorem seq_isAtAssert_cases
       | refl => exact absurd hat (by simp [isAtAssert])
       | step _ _ _ h _ => exact absurd h (by intro h; cases h)
 
+omit [HasOps P] in
 /-- For a single assert command, any config reachable from `.stmts [assert] ρ`
     that satisfies `isAtAssert` has getEval = ρ.eval and getStore = ρ.store. -/
 theorem assert_tail_getEvalStore
@@ -1557,7 +1588,7 @@ evaluator `EvalCmd`, and an `IsAtAssert` predicate.  Language extensions
 `IsAtAssert` predicate together with a few simple hypotheses relating it
 to the loop / seq / block structure of configurations. -/
 
-omit [HasFvar P] in
+omit [HasFvar P] [HasOps P] in
 /-- Helper: when all asserts at a loop config pass (via `hv`), the
     loop-step's `hasMeasureFailure` boolean is forced to `false`.
 
@@ -1604,7 +1635,7 @@ theorem loop_step_hasMeasureFailure_false
     rw [this] at htt
     exact absurd (Option.some.inj htt) HasBool.tt_is_not_ff.symm
 
-omit [HasFvar P] in
+omit [HasFvar P] [HasOps P] in
 /-- Helper: when all asserts at a loop config pass (via `hv`), the
     loop-step's `hasInvFailure` boolean is forced to `false`. -/
 theorem loop_step_hasInvFailure_false
@@ -1636,7 +1667,7 @@ theorem loop_step_hasInvFailure_false
     rw [he_ff] at htt
     exact absurd (Option.some.inj htt) HasBool.tt_is_not_ff.symm
 
-omit [HasFvar P] in
+omit [HasFvar P] [HasOps P] in
 /-- Single-step: if hasFailure is false and all reachable asserts pass,
     then hasFailure stays false after one step.
 
@@ -1706,6 +1737,7 @@ theorem step_preserves_noFailure
         hv a (.block _ _ _ cfg) (block_inner_star P EvalCmd extendEval _ _ _ _ _ hr) (h_IsAtAssert_block hat)) hnf
   | _ => intros; exact hnf
 
+omit [HasOps P] in
 theorem allAssertsValid_preserves_noFailure
     {ρ₀ ρ' : Env P}
     (st : Stmt P (Cmd P))
