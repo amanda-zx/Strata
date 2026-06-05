@@ -7,7 +7,6 @@ module
 
 public import Strata.DL.Imperative.StmtSemantics
 import all Strata.DL.Imperative.CmdSemantics
-import Strata.DL.Util.ListUtils
 
 /-! # Soundness Specification
 
@@ -227,7 +226,7 @@ omit [HasVal P] in
 end StmtRules
 
 
-/-! ## Connection between HoareTriple and AssertValid (standard Lang) -/
+/-! ## Definitions for connection between HoareTriple and AssertValid (standard Lang) -/
 
 section StandardConnection
 

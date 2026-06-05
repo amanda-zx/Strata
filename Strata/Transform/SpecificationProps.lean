@@ -7,9 +7,11 @@ module
 
 public import Strata.DL.Imperative.StmtSemantics
 public import Strata.Transform.Specification
+import all Strata.Transform.Specification
 import all Strata.DL.Imperative.CmdSemantics
+import all Strata.DL.Imperative.CmdSemanticsProps
+import all Strata.DL.Imperative.StmtSemanticsProps
 import Strata.DL.Util.ListUtils
-import Strata.DL.Imperative.SemanticsProps
 
 /-! # Soundness Specification — Theorems
 
@@ -26,6 +28,7 @@ namespace Specification
 
 variable {P : PureExpr} [HasFvar P] [HasFvars P] [HasOps P] [HasBool P] [HasBoolOps P] [HasInt P] [HasIntOps P] [HasVal P]
 variable (L : Lang P)
+
 
 
 namespace Hoare
