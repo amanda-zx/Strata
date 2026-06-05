@@ -479,7 +479,7 @@ private theorem havocs_targeting_stmts
 
 /-- Execute the havoc block, targeting `ρ_target.store` on `vars`.  The
     wrapping block uses `∅` outer metadata while the inner havoc commands use
-    `md`.  This matches the form produced by `buildHavocBlock`. -/
+    `md`.  This matches the havoc-block form emitted by `buildLoopOutput`. -/
 private theorem havoc_block_to_target
     (label : String) (vars : List Expression.Ident) (md : MetaData Expression)
     (ρ₀ ρ_target : Env Expression)
@@ -552,7 +552,7 @@ private theorem stmtResult_loop_struct (σ : LoopElimState)
   | .error e => simp [h, Except.isOk, Except.toBool] at hok'
   | .ok (b, s') =>
     simp only []
-    simp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase, buildLoopOutput, buildLoopPassive, buildArbitraryIterFacts, buildArbitraryIterAssumes, buildExitStateAssumes, buildHavocBlock, buildFirstIterFacts, buildEntryInvariants, buildEntryInvariantAssumes, buildInvAssumes, buildMaintainInvariants, buildExitInvariantAssumes, buildTerminationStmtsSome, hasLabelConflict, numAssertAssumesForLoop, invSuffix, measureOldIdent,
+    simp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase, buildLoopOutput, buildTerminationStmtsSome, hasLabelConflict, invSuffix, measureOldIdent,
       bind, pure, ExceptT.bind, ExceptT.pure, ExceptT.mk, ExceptT.bindCont,
       ExceptT.lift, StateT.bind,
       Functor.map, liftM, monadLift, MonadLift.monadLift,
@@ -5807,11 +5807,11 @@ private theorem simulation_loop_term_enter_case
   | .ok (b, s') =>
     simp only []
     dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase,
-      buildLoopOutput, buildLoopPassive, buildArbitraryIterFacts, buildArbitraryIterAssumes,
-      buildExitStateAssumes, buildHavocBlock, buildFirstIterFacts, buildEntryInvariants,
-      buildEntryInvariantAssumes, buildInvAssumes, buildMaintainInvariants,
-      buildExitInvariantAssumes, buildGuardParts, buildTerminationStmtsSome,
-      hasLabelConflict, numAssertAssumesForLoop, invSuffix, measureOldIdent,
+      buildLoopOutput,
+      
+      
+      buildTerminationStmtsSome,
+      hasLabelConflict, invSuffix, measureOldIdent,
       bind, pure, ExceptT.bind, ExceptT.pure, ExceptT.mk, ExceptT.bindCont,
       ExceptT.lift, StateT.bind, StateT.pure,
       Functor.map, liftM, monadLift, MonadLift.monadLift,
@@ -8356,11 +8356,11 @@ private theorem simulation_loop_exit_enter_case
   | .ok (b, s') =>
     simp only []
     dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase,
-      buildLoopOutput, buildLoopPassive, buildArbitraryIterFacts, buildArbitraryIterAssumes,
-      buildExitStateAssumes, buildHavocBlock, buildFirstIterFacts, buildEntryInvariants,
-      buildEntryInvariantAssumes, buildInvAssumes, buildMaintainInvariants,
-      buildExitInvariantAssumes, buildGuardParts, buildTerminationStmtsSome,
-      hasLabelConflict, numAssertAssumesForLoop, invSuffix, measureOldIdent,
+      buildLoopOutput,
+      
+      
+      buildTerminationStmtsSome,
+      hasLabelConflict, invSuffix, measureOldIdent,
       bind, pure, ExceptT.bind, ExceptT.pure, ExceptT.mk, ExceptT.bindCont,
       ExceptT.lift, StateT.bind, StateT.pure,
       Functor.map, liftM, monadLift, MonadLift.monadLift,
@@ -11136,11 +11136,11 @@ private theorem simulation_loop_cf_all_tt
     obtain ⟨b, s'⟩ := p
     simp only at htgt_eq
     dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase,
-      buildLoopOutput, buildLoopPassive, buildArbitraryIterFacts, buildArbitraryIterAssumes,
-      buildExitStateAssumes, buildHavocBlock, buildFirstIterFacts, buildEntryInvariants,
-      buildEntryInvariantAssumes, buildInvAssumes, buildMaintainInvariants,
-      buildExitInvariantAssumes, buildGuardParts, buildTerminationStmtsSome,
-      hasLabelConflict, numAssertAssumesForLoop, invSuffix, measureOldIdent,
+      buildLoopOutput,
+      
+      
+      buildTerminationStmtsSome,
+      hasLabelConflict, invSuffix, measureOldIdent,
       bind, pure, ExceptT.bind, ExceptT.pure, ExceptT.mk, ExceptT.bindCont,
       ExceptT.lift, StateT.bind, StateT.pure,
       Functor.map, liftM, monadLift, MonadLift.monadLift,
@@ -12645,7 +12645,7 @@ private theorem mem_definedVars_stmtResult_loop
   | .ok (b, s') =>
     simp only []
     -- Reduce the monadic computation to expose case splits on guard/measure.
-    dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase, buildLoopOutput, buildLoopPassive, buildArbitraryIterFacts, buildArbitraryIterAssumes, buildExitStateAssumes, buildHavocBlock, buildFirstIterFacts, buildEntryInvariants, buildEntryInvariantAssumes, buildInvAssumes, buildMaintainInvariants, buildExitInvariantAssumes, buildGuardParts, buildTerminationStmtsSome, hasLabelConflict, numAssertAssumesForLoop, invSuffix, measureOldIdent,
+    dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase, buildLoopOutput, buildTerminationStmtsSome, hasLabelConflict, invSuffix, measureOldIdent,
       bind, pure, ExceptT.bind, ExceptT.pure, ExceptT.mk, ExceptT.bindCont,
       ExceptT.lift, StateT.bind, StateT.pure,
       Functor.map, liftM, monadLift, MonadLift.monadLift,
@@ -12890,11 +12890,11 @@ private theorem funcDeclNames_stmtResult_loop_subset
   | .ok (b, s') =>
     simp only [h] at hn
     dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase,
-      buildLoopOutput, buildLoopPassive, buildArbitraryIterFacts, buildArbitraryIterAssumes,
-      buildExitStateAssumes, buildHavocBlock, buildFirstIterFacts, buildEntryInvariants,
-      buildEntryInvariantAssumes, buildInvAssumes, buildMaintainInvariants,
-      buildExitInvariantAssumes, buildGuardParts, buildTerminationStmtsSome,
-      hasLabelConflict, numAssertAssumesForLoop, invSuffix, measureOldIdent,
+      buildLoopOutput,
+      
+      
+      buildTerminationStmtsSome,
+      hasLabelConflict, invSuffix, measureOldIdent,
       bind, pure, ExceptT.bind, ExceptT.pure, ExceptT.mk, ExceptT.bindCont,
       ExceptT.lift, StateT.bind, StateT.pure,
       Functor.map, liftM, monadLift, MonadLift.monadLift,
@@ -13014,7 +13014,7 @@ private theorem definedVars_subset_stmtResult_loop
   | .error e => simp [h, Except.isOk, Except.toBool] at hok'
   | .ok (b, s') =>
     simp only []
-    dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase, buildLoopOutput, buildLoopPassive, buildArbitraryIterFacts, buildArbitraryIterAssumes, buildExitStateAssumes, buildHavocBlock, buildFirstIterFacts, buildEntryInvariants, buildEntryInvariantAssumes, buildInvAssumes, buildMaintainInvariants, buildExitInvariantAssumes, buildGuardParts, buildTerminationStmtsSome, hasLabelConflict, numAssertAssumesForLoop, invSuffix, measureOldIdent,
+    dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase, buildLoopOutput, buildTerminationStmtsSome, hasLabelConflict, invSuffix, measureOldIdent,
       bind, pure, ExceptT.bind, ExceptT.pure, ExceptT.mk, ExceptT.bindCont,
       ExceptT.lift, StateT.bind, StateT.pure,
       Functor.map, liftM, monadLift, MonadLift.monadLift,
@@ -13419,11 +13419,11 @@ private theorem mem_touchedVars_stmtResult_loop_aux
     m ∈ Stmt.definedVars s' false ∨
     m ∈ Stmt.touchedVars (.loop guard measure inv body md) := by
   dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase,
-    buildLoopOutput, buildLoopPassive, buildArbitraryIterFacts, buildArbitraryIterAssumes,
-    buildExitStateAssumes, buildHavocBlock, buildFirstIterFacts, buildEntryInvariants,
-    buildEntryInvariantAssumes, buildInvAssumes, buildMaintainInvariants,
-    buildExitInvariantAssumes, buildGuardParts, buildTerminationStmtsSome,
-    hasLabelConflict, numAssertAssumesForLoop, invSuffix, measureOldIdent,
+    buildLoopOutput,
+    
+    
+    buildTerminationStmtsSome,
+    hasLabelConflict, invSuffix, measureOldIdent,
     bind, pure, ExceptT.bind, ExceptT.pure, ExceptT.mk, ExceptT.bindCont,
     ExceptT.lift, StateT.bind, StateT.pure,
     Functor.map, liftM, monadLift, MonadLift.monadLift,
@@ -13734,7 +13734,7 @@ private theorem mem_touchedVars_stmtResult_loop
     -- the dsimp'd LHS back to `(stmtRun σ ...).fst`.
     have h_orig : (stmtRun σ (.loop guard measure inv body md)).fst
                   = .ok (b, s') := h
-    dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase, buildLoopOutput, buildLoopPassive, buildArbitraryIterFacts, buildArbitraryIterAssumes, buildExitStateAssumes, buildHavocBlock, buildFirstIterFacts, buildEntryInvariants, buildEntryInvariantAssumes, buildInvAssumes, buildMaintainInvariants, buildExitInvariantAssumes, buildGuardParts, buildTerminationStmtsSome, hasLabelConflict, numAssertAssumesForLoop, invSuffix, measureOldIdent,
+    dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase, buildLoopOutput, buildTerminationStmtsSome, hasLabelConflict, invSuffix, measureOldIdent,
       bind, pure, ExceptT.bind, ExceptT.pure, ExceptT.mk, ExceptT.bindCont,
       ExceptT.lift, StateT.bind, StateT.pure,
       Functor.map, liftM, monadLift, MonadLift.monadLift,
@@ -15270,11 +15270,11 @@ private theorem defUseWellFormed_stmtResult_loop
   | .ok (b, s') =>
     simp only []
     dsimp only [stmtRun, StateT.run, ExceptT.run, Stmt.removeLoopsM, removeLoopsLoopCase,
-      buildLoopOutput, buildLoopPassive, buildArbitraryIterFacts, buildArbitraryIterAssumes,
-      buildExitStateAssumes, buildHavocBlock, buildFirstIterFacts, buildEntryInvariants,
-      buildEntryInvariantAssumes, buildInvAssumes, buildMaintainInvariants,
-      buildExitInvariantAssumes, buildGuardParts, buildTerminationStmtsSome,
-      hasLabelConflict, numAssertAssumesForLoop, invSuffix, measureOldIdent,
+      buildLoopOutput,
+      
+      
+      buildTerminationStmtsSome,
+      hasLabelConflict, invSuffix, measureOldIdent,
       bind, pure, ExceptT.bind, ExceptT.pure, ExceptT.mk, ExceptT.bindCont,
       ExceptT.lift, StateT.bind, StateT.pure,
       Functor.map, liftM, monadLift, MonadLift.monadLift,
