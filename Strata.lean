@@ -155,3 +155,19 @@ import Strata.Examples.EmbeddedData
 
 -- noimport: Strata.Util.IOTests (used for tests)
 -- noimport: Strata.Java.Gen (meta module, used by laurelJavaGen executable)
+
+/- Simplified obligation-encoding prototype (PrototypeSMTGen) — self-contained verified
+   simplified SMT encoder; end-to-end soundness in PrototypeSMTGen.Soundness. -/
+import Strata.Languages.Core.PrototypeSMTGen.Closed
+import Strata.Languages.Core.PrototypeSMTGen.FunDecl
+import Strata.Languages.Core.PrototypeSMTGen.FunDef
+import Strata.Languages.Core.PrototypeSMTGen.NaryFvar
+import Strata.Languages.Core.PrototypeSMTGen.NullaryFvar
+import Strata.Languages.Core.PrototypeSMTGen.Infer
+import Strata.Languages.Core.PrototypeSMTGen.Construct
+import Strata.Languages.Core.PrototypeSMTGen.BuiltinConsistent
+import Strata.Languages.Core.PrototypeSMTGen.ModelTransfer
+import Strata.Languages.Core.PrototypeSMTGen.Core
+import Strata.Languages.Core.PrototypeSMTGen.CoreDepDenote
+import Strata.Languages.Core.PrototypeSMTGen.SeedFactory
+import Strata.Languages.Core.PrototypeSMTGen.Soundness
